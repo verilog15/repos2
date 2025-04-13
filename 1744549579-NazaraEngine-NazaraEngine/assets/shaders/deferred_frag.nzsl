@@ -1,0 +1,72 @@
+[nzsl_version("1.0")]
+module;
+
+import InstanceData from Engine.InstanceData;
+import ViewerData from Engine.ViewerData;
+
+option HasBaseColorTexture: bool = false;
+option HasAlphaTexture: bool = false;
+option AlphaTest: bool = false;
+
+[layout(std140)]
+struct MaterialSettings
+{
+	[tag("AlphaTestThreshold")]
+	AlphaThreshold: f32,
+
+	[tag("BaseColor")]
+	BaseColor: vec4[f32]
+}
+
+[tag("Material")]
+external
+{
+	[tag("Settings"), binding(0)] settings: uniform[MaterialSettings],
+	[tag("BaseColorMap"), binding(1)] MaterialBaseColorMap: sampler2D[f32],
+	[tag("AlphaMap"), binding(2)] MaterialAlphaMap: sampler2D[f32],
+}
+
+[tag("Engine")]
+external
+{
+	[tag("TextureOverlay"), binding(3)] TextureOverlay: sampler2D[f32],
+	[tag("InstanceData"), binding(4)] instanceData: uniform[InstanceData],
+	[tag("ViewerData"), binding(5)] viewerData: uniform[ViewerData],
+}
+
+struct InputData
+{
+	[location(0)] normal: vec3[f32],
+	[location(1)] uv: vec2[f32],
+	[location(2)] pos: vec3[f32]
+}
+
+struct OutputData
+{
+	[location(0)] baseColorMap: vec4[f32],
+	[location(1)] normalMap: vec4[f32],
+	[location(2)] positionMap: vec4[f32]
+}
+
+[entry(frag)]
+fn main(input: InputData) -> OutputData
+{
+	let color = settings.BaseColor;
+	const if (HasBaseColorTexture)
+		color *= MaterialBaseColorMap.Sample(input.uv);
+
+	const if (HasAlphaTexture)
+		color.w *= MaterialAlphaMap.Sample(input.uv).x;
+
+	const if (AlphaTest)
+	{
+		if (color.w < settings.AlphaThreshold)
+			discard;
+	}
+
+	let output: OutputData;
+	output.baseColorMap = color;
+	output.normalMap = vec4[f32]((vec3[f32](1.0, 1.0, 1.0) + input.normal) * 0.5, 1.0);
+	output.positionMap = vec4[f32](input.pos, 1.0);
+	return output;
+}

@@ -1,0 +1,23 @@
+[nzsl_version("1.0")]
+module TextureBlit;
+
+import VertOut, VertexShader from Engine.FullscreenVertex;
+
+external
+{
+    [binding(0)] texture: sampler2D[f32]
+}
+
+struct FragOut
+{
+    [location(0)] color: vec4[f32]
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+    let output: FragOut;
+    output.color = texture.Sample(input.uv);
+
+    return output;
+}

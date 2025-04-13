@@ -1,0 +1,43 @@
+[nzsl_version("1.0")]
+module;
+
+import VertOut, VertexShader from Engine.FullscreenVertex;
+import ViewerData from Engine.ViewerData;
+
+[layout(std140)]
+struct BlurData
+{
+	direction: vec2[f32],
+	sizeFactor: f32
+}
+
+external
+{
+	[set(0), binding(0)] viewerData: uniform[ViewerData],
+	[set(0), binding(1)] colorTexture: sampler2D[f32],
+	[set(0), binding(2)] blurData: uniform[BlurData]
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+	let invTargetSize = viewerData.invRenderTargetSize * blurData.sizeFactor;
+
+	let color = colorTexture.Sample(input.uv).rgb * 0.2270270270;
+
+	color += colorTexture.Sample(input.uv + blurData.direction * 1.3846153846 * invTargetSize).rgb * 0.3162162162;
+	color += colorTexture.Sample(input.uv - blurData.direction * 1.3846153846 * invTargetSize).rgb * 0.3162162162;
+
+	color += colorTexture.Sample(input.uv + blurData.direction * 3.2307692308 * invTargetSize).rgb * 0.0702702703;
+	color += colorTexture.Sample(input.uv - blurData.direction * 3.2307692308 * invTargetSize).rgb * 0.0702702703;
+
+	let output: FragOut;
+	output.color = vec4[f32](color, 1.0);
+
+	return output;
+}

@@ -1,0 +1,32 @@
+[nzsl_version("1.0")]
+module;
+
+import VertOut, VertexShader from Engine.FullscreenVertex;
+import ViewerData from Engine.ViewerData;
+
+external
+{
+	[set(0), binding(0)] viewerData: uniform[ViewerData],
+	[set(0), binding(1)] inputTexture: sampler2D[f32]
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+	let exposure = 0.8;
+
+	let hdrColor = inputTexture.Sample(input.uv).rgb;
+
+	// reinhard tone mapping
+	let mapped = vec3[f32](1.0, 1.0, 1.0) - exp(-hdrColor * exposure);
+
+	let output: FragOut;
+	output.color = vec4[f32](mapped, 1.0);
+
+	return output;
+}

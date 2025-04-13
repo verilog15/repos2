@@ -1,0 +1,57 @@
+[nzsl_version("1.0")]
+module;
+
+import VertOut, VertexShader from Engine.FullscreenVertex;
+import ViewerData from Engine.ViewerData;
+
+[layout(std140)]
+struct Settings
+{
+	exposure: f32,
+	decay: f32,
+	density: f32,
+	weight: f32,
+	lightPosition: vec2[f32], //< TODO: Switch to world position
+}
+
+const SampleCount: i32 = 200;
+
+external
+{
+	[set(0), binding(0)] viewerData: uniform[ViewerData],
+	[set(0), binding(1)] settings: uniform[Settings],
+	[set(0), binding(2)] occluderTexture: sampler2D[f32]
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+	let deltaUV = input.uv - settings.lightPosition;
+	deltaUV *= 1.0 / f32(SampleCount) * settings.density;
+	let illuminationDecay = 1.0;
+
+	let uv = input.uv;
+
+	let outputColor = vec4[f32](0.0, 0.0, 0.0, 1.0);
+
+	for i in 0 -> SampleCount
+	{
+		uv -= deltaUV;
+		let sample = occluderTexture.Sample(uv);
+
+		sample *= illuminationDecay * settings.weight;
+		outputColor += sample;
+
+		illuminationDecay *= settings.decay;
+	}
+
+	let output: FragOut;
+	output.color = outputColor;
+
+	return output;
+}
