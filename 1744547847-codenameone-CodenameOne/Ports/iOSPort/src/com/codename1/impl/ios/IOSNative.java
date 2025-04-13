@@ -1,0 +1,724 @@
+/*
+ * Copyright (c) 2012, Codename One and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Codename One designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
+ *  
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ * 
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ * 
+ * Please contact Codename One through http://www.codenameone.com/ if you 
+ * need additional information or have any questions.
+ */
+package com.codename1.impl.ios;
+
+import com.codename1.contacts.Contact;
+import com.codename1.payment.Product;
+import com.codename1.social.GoogleImpl;
+import com.codename1.social.LoginCallback;
+import com.codename1.ui.geom.Rectangle;
+import com.codename1.util.SuccessCallback;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Vector;
+
+/**
+ * Abstraction of the underlying native API's
+ *
+ * @author Shai Almog
+ */
+public final class IOSNative {
+
+    native long beginBackgroundTask();
+
+    native void endBackgroundTask(long taskId);
+    
+    
+    //native void startMainThread(Runnable r);
+    native void initVM();
+    static native void deinitializeVM();
+    native boolean isPainted();
+    native int getDisplayWidth();
+    native int getDisplayHeight();
+    native void editStringAt(int x, int y, int w, int h, long peer, boolean singleLine, 
+            int rows, int maxSize, int constraint, String text, boolean forceSlideUp, 
+            int color, long imagePeer, int padTop, int padBottom, int padLeft, int padRight,
+            String hint, int hintColor, boolean showToolbar, boolean blockCopyPaste, int alignment, int verticalAlignment);
+    native void resizeNativeTextView(int x, int y, int w, int h, int padTop, int padRight, int padBottom, int padLeft);
+    native void flushBuffer(long peer, int x, int y, int width, int height);
+    native void imageRgbToIntArray(long imagePeer, int[] arr, int x, int y, int width, int height, int imgWidth, int imgHeight);
+    native long createImageFromARGB(int[] argb, int width, int height);
+    native long createImage(byte[] data, int[] widthHeight);
+    native long createImageNSData(long nsData, int[] widthHeight);
+    native long scale(long peer, int width, int height);
+    native void setNativeClippingMutable(int x, int y, int width, int height, boolean firstClip);
+    native void setNativeClippingGlobal(int x, int y, int width, int height, boolean firstClip);
+    native void setAntiAliasedMutable(boolean antialiased) ;
+
+    native void nativeDrawLineMutable(int color, int alpha, int x1, int y1, int x2, int y2);
+    native void nativeDrawLineGlobal(int color, int alpha, int x1, int y1, int x2, int y2);
+    native void nativeFillRectMutable(int color, int alpha, int x, int y, int width, int height);
+    native void nativeFillRectGlobal(int color, int alpha, int x, int y, int width, int height);
+    native void nativeDrawRectMutable(int color, int alpha, int x, int y, int width, int height);
+    native void nativeDrawRectGlobal(int color, int alpha, int x, int y, int width, int height);
+    native void nativeDrawRoundRectMutable(int color, int alpha, int x, int y, int width, int height, int arcWidth, int arcHeight);
+    native void nativeDrawRoundRectGlobal(int color, int alpha, int x, int y, int width, int height, int arcWidth, int arcHeight);
+    native void nativeFillRoundRectMutable(int color, int alpha, int x, int y, int width, int height, int arcWidth, int arcHeight);
+    native void nativeFillRoundRectGlobal(int color, int alpha, int x, int y, int width, int height, int arcWidth, int arcHeight);
+    native void nativeFillArcMutable(int color, int alpha, int x, int y, int width, int height, int startAngle, int arcAngle);
+    native void nativeDrawArcMutable(int color, int alpha, int x, int y, int width, int height, int startAngle, int arcAngle);
+    native void nativeDrawStringMutable(int color, int alpha, long fontPeer, String str, int x, int y);
+    native void nativeDrawStringGlobal(int color, int alpha, long fontPeer, String str, int x, int y);
+    native void nativeDrawImageMutable(long peer, int alpha, int x, int y, int width, int height, int renderingHints);
+    native void nativeDrawImageGlobal(long peer, int alpha, int x, int y, int width, int height, int renderingHints);
+    native void nativeTileImageGlobal(long peer, int alpha, int x, int y, int width, int height);
+    native int stringWidthNative(long peer, String str);
+    native int charWidthNative(long peer, char ch);
+    native int getFontHeightNative(long peer);
+    native int fontAscentNative(long peer);
+    native int fontDescentNative(long peer);
+    native long createSystemFont(int face, int style, int size);
+    byte[] loadResource(String name, String type) {
+        int val = getResourceSize(name, type);
+        if(val < 0) {
+            return null;
+        }
+        byte[] data = new byte[val];
+        loadResource(name, type, data);
+        return data;
+    }
+    native int getResourceSize(String name, String type);
+    native void loadResource(String name, String type, byte[] data);
+
+    native long createNativeMutableImage(int w, int h, int color);
+
+    native void startDrawingOnImage(int w, int h, long peer);
+    native long finishDrawingOnImage();
+
+    native void deleteNativePeer(long peer);
+    native void deleteNativeFontPeer(long peer);
+
+    native void resetAffineGlobal();
+
+    native void scaleGlobal(float x, float y);
+
+    native void rotateGlobal(float angle);
+    native void rotateGlobal(float angle, int x, int y);
+    /*
+    native void translateGlobal(int x, int y);
+    native int getTranslateXGlobal();
+    native int getTranslateYGlobal();
+    */
+
+    native void shearGlobal(float x, float y);
+
+    native void fillRectRadialGradientGlobal(int startColor, int endColor, int x, int y, int width, int height, float relativeX, float relativeY, float relativeSize);
+    
+    native void fillLinearGradientGlobal(int startColor, int endColor, int x, int y, int width, int height, boolean horizontal);
+    
+    native void fillRectRadialGradientMutable(int startColor, int endColor, int x, int y, int width, int height, float relativeX, float relativeY, float relativeSize);
+    
+    native void fillLinearGradientMutable(int startColor, int endColor, int x, int y, int width, int height, boolean horizontal);
+
+    native boolean isTablet();
+    native boolean isIOS7();
+    
+    native void setImageName(long nativeImage, String name);
+    
+    native boolean canExecute(String url);
+    native void execute(String url);
+
+    native void flashBacklight(int duration);
+
+    // SJH Nov. 17, 2015 : Removing native isMinimized() method because it conflicted with
+    // tracking on the java side.  It caused the app to still be minimized inside start()
+    // method.  
+    // Related to this issue https://groups.google.com/forum/?utm_medium=email&utm_source=footer#!msg/codenameone-discussions/Ajo2fArN8mc/KrF_e9cTDwAJ
+    //native boolean isMinimized();
+    
+    native boolean minimizeApplication();
+
+    native void restoreMinimizedApplication();
+
+    native void lockOrientation(boolean portrait);
+    native void unlockOrientation();
+    native void lockScreen();
+    native void unlockScreen();
+
+    native void vibrate(int duration);
+
+    native int getAudioDuration(long peer);
+
+    native void playAudio(long peer);
+
+    native int getAudioTime(long peer);
+
+    native void pauseAudio(long peer);
+
+    native void setAudioTime(long peer, int time);
+    native boolean isAudioPlaying(long peer);
+
+    native void cleanupAudio(long peer);
+
+    native long createAudio(String uri, Runnable onCompletion);
+    
+    native long createAudio(byte[] data, Runnable onCompletion);
+    
+    native float getVolume();
+
+    native void setVolume(float vol);
+    
+    // Peer Component methods
+    
+    native void calcPreferredSize(long peer, int w, int h, int[] response);
+
+    native void updatePeerPositionSize(long peer, int x, int y, int w, int h);
+    
+    native void peerInitialized(long peer, int x, int y, int w, int h);
+
+    native void peerDeinitialized(long peer);
+    native void peerSetVisible(long peer, boolean v);
+    native long createPeerImage(long peer, int[] wh);
+
+    native void releasePeer(long peer);
+    native void retainPeer(long peer);
+
+    native void setClipboardString(String s);
+    native String getClipboardString();
+    
+    native void setPinchToZoomEnabled(long peer, boolean e);
+    native void setNativeBrowserScrollingEnabled(long peer, boolean e);
+    
+    // Creates a UIWebView
+    native long createBrowserComponent(Object bc);
+    
+    // Creates a WKWebView
+    native long createWKBrowserComponent(Object browserComponent);
+    native void setBrowserPage(long browserPeer, String html, String baseUrl);
+
+    native void setBrowserURL(long browserPeer, String url);
+    native void setBrowserURL(long browserPeer, String url, String[] keys, String[] values);
+    
+    native void setBrowserUserAgent(long browserPeer, String ua);
+    
+    native void browserBack(long browserPeer);
+    native void browserStop(long browserPeer);
+
+    native void browserClearHistory(long browserPeer);
+
+    native void browserExecute(long browserPeer, String javaScript);
+    native void browserExecuteAndReturnStringCallback(long browserPeer, String javaScript, SuccessCallback<String> callback);
+    native String browserExecuteAndReturnString(long browserPeer, String javaScript);
+    
+    native void browserForward(long browserPeer);
+
+    native boolean browserHasBack(long browserPeer);
+
+    native boolean browserHasForward(long browserPeer);
+
+    native void browserReload(long browserPeer);
+
+    native String getBrowserTitle(long browserPeer);
+
+    native String getBrowserURL(long browserPeer);
+    
+    native long createVideoComponent(String url, int onCompletionCallbackId);
+    native long createVideoComponent(byte[] video, int onCompletionCallbackId);
+    native long createVideoComponentNSData(long video, int onCompletionCallbackId);
+    native long createNativeVideoComponent(String url, int onCompletionCallbackId);
+    native long createNativeVideoComponent(byte[] video, int onCompletionCallbackId);
+    native long createNativeVideoComponentNSData(long video, int onCompletionCallbackId);
+
+    native void startVideoComponent(long peer); 
+    
+    native void stopVideoComponent(long peer);
+    native void pauseVideoComponent(long peer);
+    native void prepareVideoComponent(long moviePlayerPeer);
+
+    native int getMediaTimeMS(long peer);
+    
+    native int setMediaTimeMS(long peer, int now);
+
+    native int getMediaDuration(long peer);
+    
+    native void setMediaBgArtist(String artist);
+    native void setMediaBgTitle(String title);
+    native void setMediaBgDuration(long duration);
+    native void setMediaBgPosition(long position);
+    native void setMediaBgAlbumCover(long cover);
+    native void setNativeVideoControlsEmbedded(long peer, boolean value);
+    
+    native boolean isVideoPlaying(long peer);
+
+    native void setVideoFullScreen(long peer, boolean fullscreen);
+
+    native boolean isVideoFullScreen(long peer);
+
+    native long getVideoViewPeer(long peer);
+    
+    native void showNativePlayerController(long peer);
+    
+    // IO methods
+
+    native int writeToFile(byte[] data, String path);
+    native int appendToFile(byte[] data, String path);
+    native int getFileSize(String path);
+    native long getFileLastModified(String path);
+    native void readFile(String path, byte[] bytes);
+
+    native String getDocumentsDir();
+    native String getCachesDir();
+    native String getResourcesDir();
+    native void deleteFile(String file);
+    native boolean fileExists(String file);
+    native boolean isDirectory(String file);
+
+    native boolean isDarkMode();
+    native boolean isDarkModeDetectionSupported();
+    
+    native int fileCountInDir(String dir);
+    native void listFilesInDir(String dir, String[] files);
+    native void createDirectory(String dir);
+    native void moveFile(String src, String dest);
+    
+    native long openConnection(String url, int timeout);
+    native void connect(long peer);
+    native String getSSLCertificates(long peer);
+    native void setMethod(long peer, String mtd);
+    native void setChunkedStreamingMode(long peer, int len);
+    native int getResponseCode(long peer);
+
+    native String getResponseMessage(long peer);
+
+    native int getContentLength(long peer);
+
+    native String getResponseHeader(long peer, String name);
+    native int getResponseHeaderCount(long peer);
+    native String getResponseHeaderName(long peer, int offset);
+
+    native void addHeader(long peer, String key, String value);
+
+    native void setBody(long peer, byte[] arr);  
+    
+    native void setBody(long peer, String file);
+    
+    native void closeConnection(long peer);
+    
+    native String getUDID();
+    native String getOSVersion();
+    native String getDeviceName();
+    
+    // location manager
+    native boolean isGPSEnabled();
+    native long createCLLocation();
+    native boolean isGoodLocation(long clLocation);
+    native long getCurrentLocationObject(long clLocation);
+    native double getLocationLatitude(long location);
+    native double getLocationAltitude(long location);
+    native double getLocationLongtitude(long location);
+    native double getLocationAccuracy(long location);
+    native double getLocationDirection(long location);
+    native double getLocationVelocity(long location);
+    native long getLocationTimeStamp(long location);
+
+    native void startUpdatingLocation(long clLocation, int priority);
+    native void stopUpdatingLocation(long clLocation);
+    native void startUpdatingBackgroundLocation(long clLocation);
+    native void stopUpdatingBackgroundLocation(long clLocation);
+    
+    native void addGeofencing(long clLocation, double lat, double lng, double radius, long expiration, String id);
+    native void removeGeofencing(long clLocation, String id);
+    
+    // capture
+    native void captureCamera(boolean movie, int quality, int duration);
+    native void openGallery(int type);
+    native void destroyAudioUnit(long peer);
+
+    native long createAudioUnit(String path, int audioChannels, float sampleRate, float[] f);
+
+    
+    native void startAudioUnit(long audioUnit);
+    native void stopAudioUnit(long audioUnit);
+    
+    native long createAudioRecorder(final String path, final String mimeType, final int sampleRate, final int bitRate, final int audioChannels, final int maxDuration);
+    native void startAudioRecord(long peer);
+    native void pauseAudioRecord(long peer);
+    native void cleanupAudioRecord(long peer);
+
+    native void sendEmailMessage(String[] recipients, String subject, String content, String[] attachment, String[] attachmentMimeType, boolean htmlMail);
+
+    native boolean isContactsPermissionGranted();
+    native int getContactCount(boolean withNumbers);
+    native void getContactRefIds(int[] refs, boolean withNumbers);
+    native void updatePersonWithRecordID(int id, Contact cnt, boolean includesFullName, boolean includesPicture, boolean includesNumbers, boolean includesEmail, boolean includeAddress);
+    native long getPersonWithRecordID(int id);
+    native String getPersonFirstName(long id);
+    native String getPersonSurnameName(long id);
+    native int getPersonPhoneCount(long id);
+    native String getPersonPhone(long id, int offset);
+    native String getPersonPhoneType(long id, int offset);
+    native String getPersonPrimaryPhone(long id);
+    native String getPersonEmail(long id);
+    native String getPersonAddress(long id);
+    native long createPersonPhotoImage(long id);
+    native String createContact(String firstName, String surname, String officePhone, String homePhone, String cellPhone, String email);
+    native boolean deleteContact(int id);
+    
+    native void dial(String phone);
+    native void sendSMS(String phone, String text);
+
+    native void registerPush();
+
+    native void deregisterPush();
+    native void setBadgeNumber(int number);
+
+    native long createImageFile(long imagePeer, boolean jpeg, int width, int height, float quality);
+    native int getNSDataSize(long nsData);
+    native void nsDataToByteArray(long nsData, byte[] data);
+
+    native long createNSData(String file);
+    native long createNSDataResource(String name, String type);
+    native int read(long nsData, int pointer);
+    native void read(long nsData, byte[] destination, int offset, int length, int pointer);
+    
+    native boolean sqlDbExists(String name);
+    native long sqlDbCreateAndOpen(String name);
+    native void sqlDbDelete(String name);
+    native void sqlDbClose(long db);
+
+    native void sqlDbExec(long dbPeer, String sql, String[] args);
+
+    native long sqlDbExecQuery(long dbPeer, String sql, String[] args);
+
+    native boolean sqlCursorFirst(long statementPeer);
+    native boolean sqlCursorNext(long statementPeer);
+    native String sqlGetColName(long statementPeer, int index);
+    native void sqlCursorCloseStatement(long statement);
+
+    native byte[] sqlCursorValueAtColumnBlob(long statement, int col);
+    native double sqlCursorValueAtColumnDouble(long statement, int col);
+    native float sqlCursorValueAtColumnFloat(long statement, int col);
+    native int sqlCursorValueAtColumnInteger(long statement, int col);
+    native long sqlCursorValueAtColumnLong(long statement, int col);
+    native short sqlCursorValueAtColumnShort(long statement, int col);
+    native String sqlCursorValueAtColumnString(long statement, int col);
+    native boolean sqlCursorNullValueAtColumn(long statement, int col); //Warning. This function only works if no automatic type conversions have occurred for the value in question. So it must be called before any of the sqlCursorValueAtColumn* methods. After a type conversion, the result of calling this method is undefined, though harmless
+    
+    native int sqlCursorGetColumnCount(long statementPeer);
+    
+    native void fetchProducts(String[] skus, Product[] products);
+    native void purchase(String sku);
+    native boolean canMakePayments();
+    native void restorePurchases();
+    native void zoozPurchase(double amount, String currency, String appKey, boolean sandbox, String invoiceNumber);
+
+    native void setLocale(String localeStr);
+    native String formatInt(int i);
+    native String formatDouble(double d);
+    native String formatCurrency(double d);
+    native String formatDate(long date);
+    native String formatDateShort(long date);
+    native String formatDateTime(long date);
+    native double parseDouble(String localeFormattedDecimal);
+    native String formatDateTimeMedium(long date);
+    native String formatDateTimeShort(long date);
+    native String getLongMonthName(long time);
+    native String getShortMonthName(long time);
+    native String getCurrencySymbol();
+    
+    native void scanQRCode();
+    native void scanBarCode();
+
+    native long createTruetypeFont(String name);
+    native long deriveTruetypeFont(long uiFont, boolean bold, boolean italic, float size);
+
+    native void log(String text);
+
+    native void addCookie(String key, String value, String domain, String path, boolean secure, boolean httpOnly, long expires);
+    native void getCookiesForURL(String url, Vector out);
+
+    native String getUserAgentString(String callbackId);
+    
+    native void openDatePicker(int type, long time, int x, int y, int w, int h, int preferredWidth, int preferredHeight, int minuteStep);
+    native void openStringPicker(String[] stringArray, int selection, int x, int y, int w, int h, int preferredWidth, int preferredHeight);
+    
+    native void socialShare(String text, long imagePeer, Rectangle sourceRect);
+    
+    // facebook connect
+    public native void facebookLogin(Object callback);
+    public native boolean isFacebookLoggedIn();
+    public native String getFacebookToken();
+    public native void facebookLogout();
+    public native boolean askPublishPermissions(LoginCallback lc);    
+    public native boolean hasPublishPermissions();
+        
+    
+    public native boolean isAsyncEditMode();
+    public native void setAsyncEditMode(boolean b);
+    public native void foldVKB();
+    public native void hideTextEditing();
+    public native int getVKBHeight();
+    public native int getVKBWidth();
+
+    public native long connectSocket(String host, int port, int connectTimeout);    
+    public native String getHostOrIP();
+    public native void disconnectSocket(long socket);
+    public native boolean isSocketConnected(long socket);
+    public native String getSocketErrorMessage(long socket);
+    public native int getSocketErrorCode(long socket);
+    public native int getSocketAvailableInput(long socket);
+    public native byte[] readFromSocketStream(long socket);
+    public native void writeToSocketStream(long socket, byte[] data);
+
+    
+    // Paths
+    native long nativePathStrokerCreate(long consumerOutPtr, float lineWidth, int capStyle, int joinStyle, float miterLimit);
+    native void nativePathStrokerCleanup(long ptr);
+    native void nativePathStrokerReset(long ptr, float lineWidth, int capStyle, int joinStyle, float miterLimit);
+    native long nativePathStrokerGetConsumer(long ptr);
+    
+    native long nativePathRendererCreate(int pix_boundsX, int pix_boundsY,
+                           int pix_boundsWidth, int pix_boundsHeight,
+                           int windingRule);
+    native void nativePathRendererSetup(int subpixelLgPositionsX, int subpixelLgPositionsY);
+    native void nativePathRendererCleanup(long ptr);
+    native void nativePathRendererReset(long ptr, int pix_boundsX, int pix_boundsY,
+                           int pix_boundsWidth, int pix_boundsHeight,
+                           int windingRule);
+    native void nativePathRendererGetOutputBounds(long ptr, int[] bounds);
+    native long nativePathRendererGetConsumer(long ptr);
+    native long nativePathRendererCreateTexture(long ptr);
+    native int[] nativePathRendererToARGB(long ptr, int color);
+    native void nativeDeleteTexture(long textureID);
+    
+    native void nativePathConsumerMoveTo(long ptr, float x, float y);
+    native void nativePathConsumerLineTo(long ptr, float x, float y);
+    native void nativePathConsumerQuadTo(long ptr, float xc, float yc, float x1, float y1);
+    native void nativePathConsumerCurveTo(long ptr, float xc1, float yc1, float xc2, float yc2, float x1, float y1);
+    native void nativePathConsumerClose(long ptr);
+    native void nativePathConsumerDone(long ptr);
+   
+    
+    native void nativeDrawPath(int color, int alpha, long ptr);
+    native void nativeSetTransform( 
+            float a0, float a1, float a2, float a3, 
+            float b0, float b1, float b2, float b3,
+            float c0, float c1, float c2, float c3,
+            float d0, float d1, float d2, float d3,
+            int originX, int originY
+    );
+    native void nativeSetTransformMutable( 
+            float a0, float a1, float a2, float a3, 
+            float b0, float b1, float b2, float b3,
+            float c0, float c1, float c2, float c3,
+            float d0, float d1, float d2, float d3,
+            int originX, int originY
+    );
+    
+    
+    native boolean nativeIsTransformSupportedGlobal();
+    native boolean nativeIsShapeSupportedGlobal();
+    native boolean nativeIsPerspectiveTransformSupportedGlobal();
+    native boolean nativeIsAlphaMaskSupportedGlobal();
+    
+    
+    native void drawTextureAlphaMask(long textureId, int color, int alpha, int x, int y, int w, int h);
+    
+    native void nativeFillShapeMutable(int color, int alpha, int commandsLen, byte[] commandsArr, int pointsLen, float[] pointsArr); 
+    native void nativeDrawShadowMutable(long image, int x, int y, int offsetX, int offsetY, int blurRadius, int spreadRadius, int color, float opacity);
+    native void nativeDrawShapeMutable(int color, int alpha, int commandsLen, byte[] commandsArr, int pointsLen, float[] pointsArr, float lineWidth, int capStyle, int joinStyle, float miterLimit);
+    
+    // End paths
+
+    native void setNativeClippingMaskGlobal(long textureName, int x, int y, int width, int height);
+
+    
+
+    public native void printStackTraceToStream(Throwable t, Writer o);
+    //public native String stackTraceToString(Throwable t);
+
+    native void fillConvexPolygonGlobal(float[] points, int color, int alpha);
+
+    native void drawConvexPolygonGlobal(float[] points, int color, int alpha, float lineWidth, int joinStyle, int capStyle, float miterLimit);
+
+    native void setNativeClippingPolygonGlobal(float[] points);
+
+    
+    native void clearNativeCookies();
+
+    native void splitString(String source, char separator, ArrayList<String> out) ;
+
+    native void readFile(long nsFileHandle, byte[] b, int off, int len);
+
+    native int getNSFileOffset(long nsFileHandle);
+
+    native int getNSFileAvailable(long nsFileHandle);
+
+    native int getNSFileSize(long nsFileHandle);
+
+    native long createNSFileHandle(String name, String type);
+
+    native long createNSFileHandle(String file);
+
+    native void setNSFileOffset(long nsFileHandle, int off);
+
+    /**
+     * Reads a single byte from filehandle.
+     * @param nsFileHandle
+     * @return 
+     */
+    native int readNSFile(long nsFileHandle);
+
+    public native boolean isGoogleLoggedIn();
+
+    public native void googleLogin(Object callback);
+
+    public native String getGoogleToken();
+
+    public native void googleLogout();
+
+    public native void inviteFriends(String appLinkUrl, String previewImageUrl);
+    
+    native void sendLocalNotification(String id, String alertTitle, String alertBody, String alertSound, int badgeNumber, long fireDate, int repeatType, boolean foreground);
+
+    native void cancelLocalNotification(String id);
+
+    native long gausianBlurImage(long peer, float radius);
+    
+    /**
+     * Removes an observer from NSNotificationCenter
+     * @param nsObserverPeer The opaque Objective-C class that is being used as the observer.
+     */
+    native void removeNotificationCenterObserver(long nsObserverPeer);
+
+    /**
+     * This one simply hides the native editing component, but doesn't fold the 
+     * keyboard or remove the component.  It is used to bridge the gap in async
+     * edit mode between when the user clicks "next" and when the next 
+     * editing component is ready.
+     * @param b 
+     */
+    native void setNativeEditingComponentVisible(boolean b) ;
+
+    native void setNativeClippingMutable(int commandsLen, byte[] commandsArr, int pointsLen, float[] pointsArr);
+
+    native void refreshContacts();
+
+    native void translatePoints(int pointSize, float tX, float tY, float tX0, float[] in, int srcPos, float[] out, int destPos, int numPoints);
+
+    native void scalePoints(int pointSize, float sX, float sY, float sZ, float[] in, int srcPos, float[] out, int destPos, int numPoints);
+
+    native void updateNativeEditorText(String text);
+
+    native void fireUIBackgroundFetchResultNoData();
+
+    native void fireUIBackgroundFetchResultNewData();
+
+    native void fireUIBackgroundFetchResultFailed();
+
+    native void setPreferredBackgroundFetchInterval(int seconds);
+
+    native boolean isBackgroundFetchSupported();
+
+    native int countLinkedContacts(int recId);
+
+    native void getLinkedContactIds(int num, int recId, int[] out);
+
+    native void fillRadialGradientMutable(int startColor, int endColor, int x, int y, int width, int height, int startAngle, int arcAngle);
+
+    native void applyRadialGradientPaintMutable(int startColor, int endColor, int x, int y, int width, int height);
+
+    native void clearRadialGradientPaintMutable();
+
+    native void applyRadialGradientPaintGlobal(int startColor, int endColor, int x, int y, int width, int height);
+
+    native void clearRadialGradientPaintGlobal();
+
+    native void clearRectMutable(int x, int y, int width, int height);
+
+    native void nativeClearRectGlobal(int x, int y, int width, int height);
+
+    native void blockCopyPaste(boolean blockCopyPaste);
+
+    //#define INCLUDE_CONTACTS_USAGE
+    //#define INCLUDE_CALENDARS_USAGE
+    //#define INCLUDE_CAMERA_USAGE
+    //#define INCLUDE_FACEID_USAGE
+    //#define INCLUDE_LOCATION_USAGE
+    //#define INCLUDE_MICROPHONE_USAGE
+    //#define INCLUDE_MOTION_USAGE
+    //#define INCLUDE_PHOTOLIBRARYADD_USAGE
+    //#define INCLUDE_PHOTOLIBRARY_USAGE
+    //#define INCLUDE_REMINDERS_USAGE
+    //#define INCLUDE_SIRI_USAGE
+    //#define INCLUDE_SPEECHRECOGNITION_USAGE
+    //#define INCLUDE_NFCREADER_USAGE
+    native boolean checkContactsUsage();
+    native boolean checkCalendarsUsage();
+    native boolean checkCameraUsage();
+    native boolean checkFaceIDUsage();
+    native boolean checkLocationUsage();
+    native boolean checkMicrophoneUsage();
+    native boolean checkMotionUsage();
+    native boolean checkPhotoLibraryAddUsage();
+    native boolean checkPhotoLibraryUsage();
+    native boolean checkRemindersUsage();
+    native boolean checkSiriUsage();
+    native boolean checkSpeechRecognitionUsage();
+    native boolean checkNFCReaderUsage();
+
+    // Checks avaiable bytes for NetworkConnection
+    native int available(long peer);
+
+    // Read pending data from NetworkConnection
+    native int readData(long peer, byte[] bytes, int off, int len);
+
+    // Reads next byte from NetworkConnection
+    native int shiftByte(long peer);
+
+    // Appends pending data to NetworkConnection
+    // data is a NSData* object
+    // We go through java in order to use locking concurrency
+    native void appendData(long peer, long data);
+
+    
+    native void fillPolygonGlobal(int color, int alpha, int[] xPoints, int[] yPoints, int nPoints);
+
+    native void registerPushAction(String id, String title, String textInputPlaceholder, String replyButtonText);
+
+    native void startPushActionCategory(String id);
+
+    native void addPushActionToCategory(String id);
+
+    native void endPushActionCategory();
+
+    native void registerPushCategories();
+    
+    native void firePushCompletionHandler();
+
+    native boolean isMultiGallerySelectSupported();
+
+    native void setConnectionId(long peer, int id);
+    native void setInsecure(long peer, boolean insecure);
+    
+    native int getDisplaySafeInsetLeft();
+
+    native int getDisplaySafeInsetTop();
+
+    native int getDisplaySafeInsetRight();
+
+    native int getDisplaySafeInsetBottom();
+
+    native boolean isRTLString(String javaString);
+    
+}
