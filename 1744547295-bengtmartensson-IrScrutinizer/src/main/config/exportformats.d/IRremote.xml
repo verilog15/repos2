@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2016, 2025 Bengt Martensson
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<exportformats:exportformat xmlns="http://www.w3.org/1999/xhtml"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                            xmlns:exportformats="http://www.harctoolbox.org/exportformats"
+                            xsi:schemaLocation="http://www.harctoolbox.org/exportformats https://www.harctoolbox.org/schemas/exportformats.xsd"
+                            name="Arduino-IRremote" extension="ino" multiSignal="true" simpleSequence="false">
+    <exportformats:documentation>
+        <div>This export format generates an <a href="https://www.arduino.cc/">Arduino</a> sketch file (.ino).
+        The raw format will be used. It uses the IR library
+                <a href="https://github.com/Arduino-IRremote/Arduino-IRremote">IRremote</a> version 4.
+                Earlier versions are not supported.
+        </div>
+        <div>Limitations:
+            <ul>
+            <li>Only considers the first remote and its first command set.</li>
+            <li>Does not support ending sequences (ignores them).</li>
+            <li>Does not support toggling signals (includes only the first one).</li>
+            <li>Does not detect obvious data duplication, like repeats that are all equal.</li>
+            </ul>
+        </div>
+    </exportformats:documentation>
+
+<xsl:stylesheet xmlns:girr="http://www.harctoolbox.org/Girr"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:java="http://xml.apache.org/xalan/java"
+                xmlns:cidentifierfactory="http://xml.apache.org/xalan/java/org.harctoolbox.irscrutinizer.exporter.CIdentifierFactory"
+                xmlns:exporterutils="http://xml.apache.org/xalan/java/org.harctoolbox.irscrutinizer.exporter.ExporterUtils"
+                version="1.0">
+    <xsl:output method="text" />
+    <xsl:include href="IRremote_utils.xsl"/>
+
+
+    <xsl:variable name="raw-data-type" select="'static const uint16_t'" />
+
+    <xsl:template match="girr:parameters" mode="F">
+        <xsl:value-of select="girr:parameter[@name='F']/@value"/>
+        <xsl:text>U, no_sends</xsl:text>
+    </xsl:template>
+
+    <xsl:template match="girr:parameters" mode="DF">
+        <xsl:value-of select="girr:parameter[@name='D']/@value"/>
+        <xsl:text>U, </xsl:text>
+        <xsl:apply-templates select="." mode="F"/>
+    </xsl:template>
+
+    <!-- NEC -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='nec1']]" mode="definition"/>
+
+    <!-- NEC, version without S -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='nec1']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendNEC(</xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="DF"/>
+        <xsl:text> - 1);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- NEC, version with S -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='nec1'][girr:parameter/@name='S']
+and  not((number(girr:parameters/girr:parameter[@name='S']/@value) = 255 - number(girr:parameters/girr:parameter[@name='D']/@value)))
+]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendNEC(</xsl:text>
+        <xsl:value-of select="girr:parameters/girr:parameter[@name='D']/@value"/>
+        <xsl:text>U | (</xsl:text>
+        <xsl:value-of select="girr:parameters/girr:parameter[@name='S']/@value"/>
+        <xsl:text>U &lt;&lt; 8), </xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="F"/>
+        <xsl:text> - 1);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- RC5 -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='rc5']]" mode="definition"/>
+
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='rc5']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendRC5(</xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="DF"/>
+        <xsl:text> - 1, true);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- RC6 -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='rc6']]" mode="definition"/>
+
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='rc6']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendRC6(</xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="DF"/>
+        <xsl:text> - 1, true);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- Denon -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='denon']]" mode="definition"/>
+
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='denon']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendDenon(</xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="DF"/>
+        <xsl:text> - 1);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- Sony12 -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='sony12']]" mode="definition"/>
+
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='sony12']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendSony(</xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="DF"/>
+        <xsl:text> &gt;= 3U ? no_sends - 1 : 2U, SIRCS_12_PROTOCOL);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- Sony15 -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='sony15']]" mode="definition"/>
+
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='sony15']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendSony(</xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="DF"/>
+        <xsl:text> &gt;= 3U ? no_sends - 1 : 2U, SIRCS_15_PROTOCOL);
+        break;
+</xsl:text>
+    </xsl:template>
+
+    <!-- Sony20 -->
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='sony20']]" mode="definition"/>
+
+    <xsl:template match="girr:command[girr:parameters[translate(@protocol,$uppercase,$lowercase)='sony20']]" mode="using">
+        <xsl:apply-templates select="." mode="case-line"/>
+        <xsl:text>        IrSender.sendSony(</xsl:text>
+        <xsl:value-of select="girr:parameters/girr:parameter[@name='D']/@value"/>
+        <xsl:text>U | (</xsl:text>
+        <xsl:value-of select="girr:parameters/girr:parameter[@name='S']/@value"/>
+        <xsl:text>U &lt;&lt; 5), </xsl:text>
+        <xsl:apply-templates select="girr:parameters" mode="F"/>
+        <xsl:text> &gt;= 3U ? no_sends - 1 : 2U, SIRCS_20_PROTOCOL);
+        break;
+</xsl:text>
+    </xsl:template>
+
+</xsl:stylesheet>
+</exportformats:exportformat>
