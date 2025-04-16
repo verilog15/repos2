@@ -1,0 +1,61 @@
+@if (scrobbles.state$ | async; as state) {
+  <div class="progress">
+    @if (isLastfm) {
+      @if (state.state === 'RETRIEVING') {
+        <div>
+          <div class="loading">Loading: {{currentPage | async}}/{{state.totalPages}} pages ({{percentage | async | number:'1.2-2'}}%, {{eta | async}}) <mat-spinner [diameter]="24"></mat-spinner></div>
+          <mat-progress-bar mode="determinate" [value]="percentage | async"></mat-progress-bar>
+        </div>
+      }
+      @if (state.state === 'LOADSTUCK') {
+        <div class="load-stuck">
+          <mat-icon color="warn">error_outline</mat-icon> Loading got stuck at page {{currentPage | async}}/{{state.totalPages}} 😭.
+        </div>
+      }
+      @if (state.state === 'COMPLETED' && isLastfm) {
+        <div>
+          Loading finished, your statistics are up to date!
+        </div>
+      }
+      @if (state.state !== 'LOADSTUCK') {
+        <div>
+          <span>{{state.state === 'RETRIEVING' ? 'Retrieving' : 'Retrieved'}} <b>{{state.loadScrobbles| number}}</b> scrobbles</span>
+          @if (state.importedScrobbles) {
+            <span>, imported <b>{{state.importedScrobbles | number}}</b> scrobbles. Total scrobbles: <b>{{state.importedScrobbles + state.loadScrobbles | number}}</b></span>
+          }
+        </div>
+      }
+    }
+    @if (!isLastfm) {
+      <div [innerHTML]="spotifySummary | async"></div>
+    }
+  </div>
+}
+<div class="export">
+  Save your data to reduce waiting time for your next visit!
+  <div>
+    @if (saveInDb$ | async; as save) {
+      <button mat-flat-button disabled>
+        <mat-icon>{{save === 100 ? 'download_done' : 'downloading'}}</mat-icon>
+        {{save === 100 ? 'Saved!' : (save | number:'1.2-2') + '%'}}
+      </button>
+    } @else {
+      <button mat-flat-button (click)="saveInDb()" matTooltip="Save in browser using indexedDB">
+        <mat-icon>system_update</mat-icon>
+        {{isLastfm ? 'Browser' : 'Save'}}
+      </button>
+    }
+    @if (isLastfm) {
+      <button mat-flat-button (click)="exportJSON()" matTooltip="Download file in JSON format">
+        <mat-icon>file_download</mat-icon>
+        JSON
+      </button>
+    }
+    @if (isLastfm) {
+      <button mat-flat-button (click)="exportCSV()" matTooltip="Download file in CSV format">
+        <mat-icon>file_download</mat-icon>
+        CSV
+      </button>
+    }
+  </div>
+</div>

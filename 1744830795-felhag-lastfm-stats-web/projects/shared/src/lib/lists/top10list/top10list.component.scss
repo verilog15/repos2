@@ -1,0 +1,20 @@
+.mat-mdc-card {
+  .mat-mdc-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mat-icon {
+    color: #999;
+  }
+}
+
+.item-description {
+  color: #999;
+}
+
+:host ::ng-deep .mat-mdc-card-header-text {
+  width: 100%;
+  margin-left: 16px;
+}

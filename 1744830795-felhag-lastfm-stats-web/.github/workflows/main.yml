@@ -1,0 +1,36 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run.
+on:
+  push:
+    tags:
+      - '*'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Build
+      run: |
+        npm install --legacy-peer-deps
+        npm run-script deploy
+        cp dist/lastfm-stats/browser/index.html dist/lastfm-stats/browser/404.html
+
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@v4.7.2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        folder: dist/lastfm-stats/browser
+        target-folder: docs

@@ -1,0 +1,10 @@
+@use './app/home/home.component' as home;
+@use './../../shared/src/shared-styles' as shared;
+
+@media (prefers-color-scheme: light) {
+  @include home.color(shared.$light-app-theme);
+}
+
+@media (prefers-color-scheme: dark) {
+  @include home.color(shared.$dark-app-theme);
+}

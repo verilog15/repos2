@@ -1,0 +1,130 @@
+<mat-card>
+  <mat-card-content>
+    <dl>
+      <dt>Username</dt>
+      <dd>{{ (user$ | async)?.name }}</dd>
+
+      @if (days$ | async; as days) {
+        <dt>Days since first {{ 'translate.scrobble' | translate }}</dt>
+        <dd>{{ days }}</dd>
+      }
+      @if (tempStats$ | async; as stats) {
+        <dt>Days {{ 'translate.scrobbled' | translate }}</dt>
+        <dd>{{ count(stats.specificDays) }} ({{ count(stats.specificDays) / ((days$ | async)!) * 100 | number:'1.0-2' }}
+          %)
+        </dd>
+      }
+      @if (scrobbles.first | async; as first) {
+        <dt>First {{ 'translate.scrobble' | translate }}</dt>
+        <dd>{{ first.date | date }} ({{ first.artist }} - {{ first.track }})</dd>
+      }
+      @if (scrobbles.last | async; as last) {
+        <dt>Last {{ 'translate.scrobble' | translate }}</dt>
+        <dd>{{ last.date | date }} ({{ last.artist }} - {{ last.track }})</dd>
+      }
+    </dl>
+  </mat-card-content>
+</mat-card>
+
+@if (tempStats$ | async; as stats) {
+  <mat-card>
+    <mat-card-content>
+      <dl>
+        <dt>Artists</dt>
+        <dd>{{ count(stats.seenArtists) }}</dd>
+        @if (oneHitWonders(stats); as owh) {
+          <dt>One hit wonders</dt>
+          <dd>{{ owh }}  ({{ owh / (count(stats.seenArtists)) * 100 | number:'1.0-2' }} %)
+        }
+        <dt>Every year artists</dt>
+        @if (years$ | async; as years) {
+          @if (values(stats.seenArtists) | filterByYear : years; as eya) {
+            <dd class="every-year-artist">
+              {{ eya.length }}
+              <mat-icon (click)="openEveryYearArist(stats)" inline="true">view_list</mat-icon>
+            </dd>
+          }
+        }
+        <dt>Albums</dt>
+        <dd>{{ count(stats.seenAlbums) }}</dd>
+        <dt>Albums per artist</dt>
+        <dd>{{ count(stats.seenAlbums) / count(stats.seenArtists) | number:'1.0-2' }}</dd>
+        <dt>Tracks</dt>
+        <dd>{{ count(stats.seenTracks) }}</dd>
+        @if (tracksWithoutAlbum(stats); as twa) {
+          <dt>Tracks without album</dt>
+          <dd>{{ twa }}  ({{ twa / count(stats.seenTracks) * 100 | number:'1.0-2' }} %)
+        }
+        @if (scrobblesWithoutAlbum(stats); as swa) {
+          <dt>Scrobbles without album</dt>
+          <dd>{{ swa }}  ({{ swa / stats.scrobbleCount * 100 | number:'1.0-2' }} %)
+        }
+      </dl>
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-content>
+      <dl>
+        @if (getEddington(stats); as eddington) {
+          <dt>Eddington number</dt>
+          <dd>
+            {{ eddington }}
+            <ng-container *ngTemplateOutlet="explain; context:{ explanation: 'This means you have ' + eddington + ' days with at least ' + eddington + ' ' + ('translate.scrobbles' | translate) } "></ng-container>
+          </dd>
+          <dt>Days needed for next Eddington ({{ eddington + 1 }})</dt>
+          <dd>{{ nextEddington(stats) }}</dd>
+        }
+
+        @if (cutOver(stats); as cutOver) {
+          <dt>Artist cut over point</dt>
+          <dd>
+            {{ cutOver }}
+            <ng-container *ngTemplateOutlet="explain; context:{ explanation: 'This means you have ' + cutOver + ' artists with at least ' + cutOver + ' ' + ('translate.scrobbles' | translate) } "></ng-container>
+          </dd>
+        }
+
+        <dt>Most popular year</dt>
+        @if (max(stats.years); as max) {
+          <dd>{{ max }} ({{ stats.years[max] }} {{ 'translate.scrobbles' | translate }})</dd>
+        }
+        <dt>Most popular month</dt>
+        @if (mostPopularMonth(stats); as month) {
+          <dd>{{ month.alias }} ({{ month.count }} {{ 'translate.scrobbles' | translate }})</dd>
+        }
+      </dl>
+    </mat-card-content>
+  </mat-card>
+}
+
+<ng-template #everyYearArtists>
+  <h2 mat-dialog-title> Every year artist </h2>
+  <div mat-dialog-content>
+    @if (years$ | async; as years) {
+      <mat-chip-listbox multiple>
+        @for (year of years; track year[0]) {
+          <mat-chip-option selected [value]="year[0]" (selectionChange)="year[3] = $event.selected">{{ year[0] }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+      @if (values((tempStats$ | async)?.seenArtists || {}) | filterByYear: years; as artists) {
+        Found {{ artists.length }} arists which you listened to in all selected years
+        <mat-list>
+          @for (artist of artists; track artist.name) {
+            <mat-list-item>
+              {{ artist.name }} ({{ artist.scrobbles.length }}
+              {{ 'translate.scrobbles' | translate }}@if (missing(artist, years); as missing) {<i>, missing {{missing}}</i>})
+            </mat-list-item>
+          }
+        </mat-list>
+      }
+    }
+  </div>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #explain let-explanation="explanation">
+  <button class="explain" mat-icon-button (click)="openExplanation(explanation)">
+    <mat-icon>info_outline</mat-icon>
+  </button>
+</ng-template>

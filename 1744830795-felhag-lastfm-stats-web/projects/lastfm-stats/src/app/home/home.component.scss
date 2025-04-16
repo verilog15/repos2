@@ -1,0 +1,65 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use 'projects/shared/src/shared-home.scss' as shared;
+
+.home {
+  .cm-logo {
+    width: 104px;
+    height: 80px;
+    position: relative;
+    img {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      max-width: 120px;
+    }
+  }
+
+  .input-wrap {
+    position: relative;
+
+    .width-machine {
+      visibility: hidden;
+      display: inline-block;
+      min-width: 150px;
+    }
+
+    .input {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      left: 0;
+      outline: 0;
+      border: 0;
+      background: transparent;
+      font-size: shared.$font-size;
+      font-family: inherit;
+      color: inherit;
+      padding: 0;
+    }
+  }
+
+  .or {
+    font-size: .75rem;
+    letter-spacing: 1px;
+    padding: 0 20px;
+  }
+}
+
+@mixin color($theme) {
+  $color-config: mat.m2-get-color-config($theme);
+  $warn-palette: map.get($color-config, 'warn');
+
+  .home .input-wrap .input.invalid::placeholder {
+    color: mat.m2-get-color-from-palette($warn-palette, 500);
+    opacity: 1;
+  }
+
+  .home-row.error {
+    color: mat.m2-get-color-from-palette($warn-palette, 500);
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    white-space: pre-line;
+  }
+}

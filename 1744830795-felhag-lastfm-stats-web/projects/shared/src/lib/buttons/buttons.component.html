@@ -1,0 +1,17 @@
+@if (showHome) {
+  <button mat-icon-button matTooltip="Home" [routerLink]="'/'">
+    <mat-icon>home</mat-icon>
+  </button>
+}
+<button mat-icon-button matTooltip="Github" (click)="open('https://github.com/felhag/lastfm-stats-web')">
+  <mat-icon svgIcon="github"></mat-icon>
+</button>
+<button mat-icon-button matTooltip="Reddit" (click)="open('https://www.reddit.com/user/TonnyTorpedo')">
+  <mat-icon svgIcon="reddit"></mat-icon>
+</button>
+<button mat-icon-button matTooltip="Buy me a coffee" (click)="open('https://ko-fi.com/felhag')">
+  <mat-icon svgIcon="ko-fi"></mat-icon>
+</button>
+<button mat-icon-button [matTooltip]="isLastFm ? 'Spotify stats' : 'Last.fm stats'" (click)="open(isLastFm ? 'https://spotifystats.app' : 'https://lastfmstats.com')">
+  <img width="24" height="24" src="assets/stats.png" alt="">
+</button>

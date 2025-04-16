@@ -1,0 +1,36 @@
+app-db-load-button {
+  display: block;
+  width: 100%;
+}
+
+.buttons {
+  text-align: center;
+
+  .mat-mdc-select, button {
+    width: 50%;
+    font-size: 1rem;
+  }
+}
+
+.mat-mdc-select {
+  .mat-mdc-select-value {
+    text-align: center;
+  }
+  .mat-mdc-select-placeholder, mat-mdc-select-value {
+    color: inherit;
+  }
+  .mat-mdc-select-arrow-wrapper {
+    display: none;
+  }
+}
+
+.mat-mdc-option {
+  .mdc-list-item__primary-text {
+    min-width: calc(100% + 16px);
+  }
+  .db-user-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

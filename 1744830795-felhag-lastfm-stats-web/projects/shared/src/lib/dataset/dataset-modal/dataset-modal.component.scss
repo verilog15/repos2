@@ -1,0 +1,29 @@
+h2 a .mat-icon {
+  margin-left: 16px;
+  vertical-align: middle;
+}
+
+.orb-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+highcharts-chart {
+  display: block;
+  width: 100%;
+}
+
+.annotation-toolbar {
+  position: absolute;
+  right: 32px;
+  bottom: 0;
+}
+
+@media (max-width: 864px) {
+  .annotation-toolbar {
+    display: none;
+  }
+}

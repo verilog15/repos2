@@ -1,0 +1,65 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use 'projects/shared/src/shared-home.scss' as shared;
+
+.open-dialog-button {
+  width: 100%;
+  margin: 12px 0;
+  cursor: pointer;
+  color: #1DB954;
+  text-decoration: underline;
+  text-align: center;
+}
+
+.username-holder {
+  font-size: 16px;
+  width: 100%;
+
+  .mat-mdc-form-field {
+    width: 100%;
+  }
+}
+
+.custom-dropzone {
+  flex-direction: column;
+  justify-content: center;
+  background: transparent;
+  height: auto;
+  min-height: 140px;
+  min-width: 100%;
+  color: inherit;
+  border-color: #d9dadc;
+  overflow-x: visible;
+  line-height: initial;
+
+  .mat-mdc-nav-list {
+    min-width: 100%;
+    max-height: 288px;
+    overflow-y: auto;
+    padding-top: 0;
+  }
+}
+
+.deduplicated {
+  font-size: 16px;
+  line-height: 16px;
+  margin-top: 12px;
+}
+
+ngx-dropzone-preview {
+  min-width: 100%;
+}
+
+.custom-dropzone.ngx-dz-hovered {
+  border: 3px solid #1DB954;
+}
+
+@mixin color($theme) {
+  $color-config: mat.m2-get-color-config($theme);
+  $warn-palette: map.get($color-config, 'warn');
+  $warn-color: mat.m2-get-color-from-palette($warn-palette, 500);
+  .custom-dropzone.invalid {
+    color: $warn-color !important;
+    border-color: $warn-color !important;
+  }
+}
