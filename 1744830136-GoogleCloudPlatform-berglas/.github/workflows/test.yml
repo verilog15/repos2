@@ -1,0 +1,57 @@
+name: 'test'
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: 'ubuntu-latest'
+
+    env:
+      CREDENTIALS: '${{ secrets.GOOGLE_CREDENTIALS }}'
+      GOOGLE_CLOUD_PROJECT: 'berglas-test'
+      GOOGLE_CLOUD_BUCKET: 'berglas-test-secrets'
+      GOOGLE_CLOUD_KMS_KEY: 'projects/berglas-test/locations/global/keyRings/my-keyring/cryptoKeys/my-key'
+      GOOGLE_CLOUD_SERVICE_ACCOUNT: 'berglas-test@berglas-test.iam.gserviceaccount.com'
+
+    steps:
+      - uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # ratchet:actions/checkout@v4
+
+      - uses: 'actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34' # ratchet:actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: 'Unit tests'
+        run: |-
+          go test \
+            -count=1 \
+            -race \
+            -short \
+            -shuffle=on \
+            -timeout='10m' \
+            ./...
+
+      - uses: 'google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f' # ratchet:google-github-actions/auth@v2
+        if: '${{ env.CREDENTIALS }}'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - name: 'Acceptance tests'
+        if: '${{ env.CREDENTIALS }}'
+        run: |-
+          go test \
+            -count=1 \
+            -race \
+            -shuffle=on \
+            -timeout='10m' \
+            ./...
