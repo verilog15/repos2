@@ -1,0 +1,91 @@
+# Goreleaser documentation can be found at http://goreleaser.com
+version: 2
+before:
+  hooks:
+    - go mod download
+    - go generate ./...
+    - git diff
+builds:
+- id: linux-build
+  ldflags:
+  - -X github.com/plentico/plenti/cmd.Version={{.Tag}}
+  - -extldflags=-static
+  env:
+  - CGO_ENABLED=1
+  goos:
+  - linux
+  goarch:
+  - amd64
+- id: darwin-build
+  ldflags:
+  - -s
+  - -X github.com/plentico/plenti/cmd.Version={{.Tag}}
+  env:
+  - CGO_ENABLED=1
+  - CC=/home/runner/work/osxcross/target/bin/o64-clang
+  - CXX=/home/runner/work/osxcross/target/bin/o64-clang++
+  goos:
+  - darwin
+  goarch:
+  - amd64
+  - arm64
+universal_binaries:
+  -
+    ids:
+      - darwin-build
+    replace: true
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- trimprefix .Version "." }}_
+      {{- if eq .Os "darwin" }}mac_
+      {{- else }}{{- tolower .Os }}_{{end}}
+      {{- if eq .Arch "amd64" }}64-bit
+      {{- else if eq .Arch "all" }}64-bit
+      {{- else if eq .Arch "386" }}32-bit
+      {{- else }}{{ .Arch }}{{ end }}
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+brews:
+  -
+    name: plenti
+    repository:
+      owner: plentico
+      name: homebrew-plenti
+    homepage: "https://plenti.co/"
+    description: "Dead simple SSG with Svelte frontend and Go CLI."
+snapcrafts:
+  -
+    id: plenti
+    name: plenti
+    publish: true # publish the snap to the snapcraft store.
+    summary: A simple static site generator for the JAMstack. 
+    description: Dead simple SSG with Svelte frontend and Go CLI.
+    grade: stable
+    confinement: strict
+    license: Apache-2.0
+    # allow read/write to user's filesystem.
+    apps:
+      plenti:
+        plugs: ["home", "network-bind", "removable-media"]
+#scoop:
+#  bucket:
+#    owner: plentico
+#    name: scoop-plenti
+#  description: "Dead simple SSG with Svelte frontend and Go CLI."
+#  license: Apache-2.0
+dockers:
+  -
+    goos: linux
+    goarch: amd64
+    image_templates:
+    - "plentico/plenti:latest"
+    - "plentico/plenti:{{ .Tag }}"
